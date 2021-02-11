@@ -1,0 +1,100 @@
+import pygame
+from pygame.locals import *
+
+pygame.init()
+vec = pygame.math.Vector2
+
+korkeus = 450
+leveys = 400
+acc= 0.5
+fric = -0.12
+fps = 60
+
+FramePerSec= pygame.time.Clock()
+
+
+displaysurface = pygame.display.set_mode((leveys, korkeus))
+pygame.display.set_caption("Projekti 2")
+
+class Player (pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        #self.image = pygame.image.load("still.png")
+        self.surf = pygame.Surface((30,30))
+        self.surf.fill((128,255,40))
+        self.rect = self.surf.get_rect(center =(10, 420))
+
+        self.pos = vec((10, 360))
+        self.vel = vec(0,0)
+        self.acc = vec(0,0)
+    
+    def move(self):
+        self.acc = vec(0,0.5)
+
+        painallukset = pygame.key.get_pressed()
+
+        if painallukset[K_LEFT]:
+            self.acc.x = -acc
+        if painallukset[K_RIGHT]:
+            self.acc.x = acc
+
+        self.acc.x += self.vel.x * fric
+        self.vel += self.acc
+        self.pos += self.vel + 0.5 * self.acc  
+        
+        if self.pos.x > leveys:
+            self.pos.x = 0
+        if self.pos.x < 0:
+            self.pos.x = leveys
+        
+        self.rect.midbottom = self.pos
+
+    def jump(self):
+        osuma = pygame.sprite.spritecollide(P1, platforms, False)
+        if osuma:
+            self.vel.y = -15
+
+    def update(self):
+        osuma = pygame.sprite.spritecollide(P1, platforms, False)
+        if P1.vel.y > 0:
+            if osuma:
+                self.vel.y = 0
+                self.pos.y = osuma[0].rect.top + 1 
+
+
+class platform(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.surf = pygame.Surface((leveys , 20))
+        self.surf.fill((255,0,0))
+        self.rect = self.surf.get_rect(center =(leveys/2, korkeus -10))
+
+Pt1 = platform()
+P1 = Player()
+
+all_sprites = pygame.sprite.Group()
+all_sprites.add(Pt1)
+all_sprites.add(P1)
+
+platforms = pygame.sprite.Group()
+platforms.add(Pt1)
+
+while True:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                P1.jump()
+
+    displaysurface.fill((0,0,0))
+    P1.update()
+    P1.move()
+
+
+    for entity in all_sprites:
+        displaysurface.blit(entity.surf, entity.rect)
+    
+    pygame.display.update()
+    FramePerSec.tick(fps)
