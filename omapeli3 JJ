@@ -64,16 +64,21 @@ class Player (pygame.sprite.Sprite):
                 self.vel.y = 0
                 self.pos.y = osuma[0].rect.top + 1 
 
-#Platformit tulevaisuudessa
+#Platformit 
 class platform(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.surf = pygame.Surface((leveys , 20))
-        self.surf.fill((255,0,0))
-        self.rect = self.surf.get_rect(center =(leveys/2, korkeus -10))
-
+        self.surf = pygame.Surface((random.randint(50,100), 12))
+        self.surf.fill((0,255,0))
+        self.rect = self.surf.get_rect(center = (random.randint(0,leveys-10), random.randint(0,korkeus-30)))
+        
 Pt1 = platform()
 P1 = Player()
+
+#Main platformi
+Pt1.surf = pygame.Surface((leveys , 20))
+Pt1.surf.fill((255,0,0))
+Pt1.rect = Pt1.surf.get_rect(center =(leveys/2, korkeus -10))
 
 all_sprites = pygame.sprite.Group()
 all_sprites.add(Pt1)
