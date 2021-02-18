@@ -1,4 +1,5 @@
 import pygame
+import random
 from pygame.locals import *
 
 pygame.init()
@@ -74,6 +75,11 @@ class platform(pygame.sprite.Sprite):
         
 Pt1 = platform()
 P1 = Player()
+
+for x in range(random.randint(5,6)):
+    pl = platform()
+    platforms.add(pl)
+    all_sprites.add(pl)
 
 #Main platformi
 Pt1.surf = pygame.Surface((leveys , 20))
