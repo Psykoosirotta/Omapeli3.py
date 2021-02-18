@@ -13,6 +13,8 @@ fps = 60
 
 FramePerSec= pygame.time.Clock()
 
+#UNCLE JORKKI
+
 displaysurface = pygame.display.set_mode((leveys, korkeus))
 pygame.display.set_caption("Projekti 2")
 
