@@ -11,6 +11,10 @@ leveys = 400
 acc= 0.5
 fric = -0.12
 fps = 60
+red = (255,0,0)
+font = pygame.font.SysFont(None, 25)
+display_width = 400
+display_height = 450
 
 FramePerSec= pygame.time.Clock()
 
@@ -76,10 +80,7 @@ class platform(pygame.sprite.Sprite):
 Pt1 = platform()
 P1 = Player()
 
-for x in range(random.randint(5,6)):
-    pl = platform()
-    platforms.add(pl)
-    all_sprites.add(pl)
+
 
 #Main platformi
 Pt1.surf = pygame.Surface((leveys , 20))
