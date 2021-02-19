@@ -1,11 +1,15 @@
 import pygame
 import random
+import sys
 from pygame.locals import *
+
+
 
 pygame.init()
 vec = pygame.math.Vector2
 
-#Peliruudun tiedot 
+x = 50
+y = 400
 korkeus = 450
 leveys = 400
 acc= 0.5
@@ -13,30 +17,45 @@ fric = -0.12
 fps = 60
 red = (255,0,0)
 font = pygame.font.SysFont(None, 25)
-display_width = 400
-display_height = 450
+
 
 FramePerSec= pygame.time.Clock()
+
 
 displaysurface = pygame.display.set_mode((leveys, korkeus))
 pygame.display.set_caption("Projekti 2")
 
-#Hahmo: Liikkuvuus, (Grafiikat)
+
+class Background(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load('bg4.jpg')
+        self.rect = self.image.get_rect()
+        self.bgY = 0
+        self.bgX = 0
+    
+    def render(self):
+        displaysurface.blit(self.image, (self.bgX, self.bgY))
+
 class Player (pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        #self.image = pygame.image.load("still.png")
-        self.surf = pygame.Surface((30,30))
-        self.surf.fill((128,255,40))
-        self.rect = self.surf.get_rect(center =(10, 420))
+        self.image = pygame.image.load("still.1.png")
+        self.rect = self.image.get_rect()
+        self.surf = pygame.Surface((64,64))
+
 
         self.pos = vec((10, 360))
         self.vel = vec(0,0)
         self.acc = vec(0,0)
+        
+        self.walkCount = 0
+        self.jumping = False
+        self.running = False
     
     def move(self):
-        self.acc = vec(0,0.5)
-
+        self.acc = vec(0,0.5)  
+        
         painallukset = pygame.key.get_pressed()
 
         if painallukset[K_LEFT]:
@@ -54,51 +73,71 @@ class Player (pygame.sprite.Sprite):
             self.pos.x = leveys
         
         self.rect.midbottom = self.pos
-        
-#Hyppyfunktio jonka avulla hahmo hyppää
+
     def jump(self):
         osuma = pygame.sprite.spritecollide(P1, platforms, False)
-        if osuma:
+        if osuma and not self.jumping:
+            self.jumping = True
             self.vel.y = -15
-            
-#Funktio jonka avulla hahmo ei tipu lattiasta läpi
-    def update(self):
-        osuma = pygame.sprite.spritecollide(P1, platforms, False)
-        if P1.vel.y > 0:
-            if osuma:
-                self.vel.y = 0
-                self.pos.y = osuma[0].rect.top + 1 
+    
+    def cancel_jump(self):
+        if self.jumping:
+            if self.vel.y < -3:
+                self.vel.y = -3
 
-#Platformit 
+    def update(self):
+        osuma = pygame.sprite.spritecollide(self , platforms, False)
+        if self.vel.y > 0:
+            if osuma:
+                if self.pos.y < osuma[0].rect.bottom:               
+                    self.pos.y = osuma[0].rect.top +1
+                    self.vel.y = 0
+                    self.jumping = False
+    
+
 class platform(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.surf = pygame.Surface((random.randint(50,100), 12))
         self.surf.fill((0,255,0))
         self.rect = self.surf.get_rect(center = (random.randint(0,leveys-10), random.randint(0,korkeus-30)))
-        
-Pt1 = platform()
-P1 = Player()
+        self.speed = random.randint(-1, 1)
+        self.moving = True
 
-
-
-#Main platformi
-Pt1.surf = pygame.Surface((leveys , 20))
-Pt1.surf.fill((255,0,0))
-Pt1.rect = Pt1.surf.get_rect(center =(leveys/2, korkeus -10))
-
-all_sprites = pygame.sprite.Group()
-all_sprites.add(Pt1)
-all_sprites.add(P1)
-
-platforms = pygame.sprite.Group()
-platforms.add(Pt1)
-
-for x in range(random.randint(5,6)):
-    pl=platform()
-    platforms.add(pl)
-    all_sprites.add(pl)
     
+    def move(self):
+        Pt1.moving = False
+        if self.moving == True:
+            self.rect.move_ip(self.speed, 0)
+            if self.speed > 0 and self.rect.left > leveys:
+                self.rect.right = 0
+            if self.speed < 0 and self.rect.right < 0:
+                self.rect.left = leveys
+
+
+def check(platform, groupies):
+    if pygame.sprite.spritecollideany(platform,groupies):
+        return True
+    else:
+        for entity in groupies:
+            if entity == platform:
+                continue
+            if (abs(platform.rect.top - entity.rect.bottom) < 50) and (abs(platform.rect.bottom - entity.rect.top) < 50):
+                return True
+        C = False
+
+def plat_gen():
+    while len(platforms) < 6 :
+        width = random.randrange(50,100)
+        p = platform()
+        C = True
+        while C:
+            p=platform()
+            p.rect.center = (random.randrange(0, leveys - width), random.randrange(-50, 0))
+            C = check(p, platforms)
+        platforms.add(p)
+        all_sprites.add(p)
+
     
 def text_objects(text,color):
     textSurface = font.render(text, True, color)
@@ -106,7 +145,7 @@ def text_objects(text,color):
 
 def message_to_screen (msg, color, y_displace=0):
     textSurf, textRect = text_objects (msg, color)
-    textRect.center = (display_width / 2), (display_height / 2) + y_displace
+    textRect.center = (leveys / 2), (korkeus / 2) + y_displace
     displaysurface.blit(textSurf, textRect)
 
 
@@ -140,9 +179,38 @@ def game_intro():
         pygame.display.update()
         pygame.display.flip()
 
-#Peliluuppi älä koske 
+
+
+
+Pt1 = platform()
+P1 = Player()
+background = Background()
+
+Pt1.surf = pygame.Surface((leveys , 20))
+Pt1.surf.fill((255,0,0))
+Pt1.rect = Pt1.surf.get_rect(center =(leveys/2, korkeus -10))
+
+all_sprites = pygame.sprite.Group()
+all_sprites.add(Pt1)
+all_sprites.add(P1)
+
+
+platforms = pygame.sprite.Group()
+platforms.add(Pt1)
+
+for x in range(random.randint(4,5)):
+    C = True
+    pl = platform()
+    while C:
+        pl = platform()
+        C = check(pl,platforms)
+    platforms.add(pl)
+    all_sprites.add(pl)
+
 game_intro()
+
 while True:
+
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
@@ -150,14 +218,36 @@ while True:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 P1.jump()
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_SPACE:
+                P1.cancel_jump()
 
-    displaysurface.fill((0,0,0))
-    P1.update()
-    P1.move()
+    if P1.rect.top <= korkeus / 3:
+        P1.pos.y += abs(P1.vel.y)
+        for plat in platforms:
+            plat.rect.y += abs(P1.vel.y)
+            if plat.rect.top >= korkeus:
+                plat.kill()
+    if P1.rect.top > korkeus:
+        for entity in all_sprites:
+            entity.kill()
+            displaysurface.fill((255,0,0))
+            pygame.display.update()
+            pygame.quit() 
 
+    background.render()
 
     for entity in all_sprites:
-        displaysurface.blit(entity.surf, entity.rect)
+        if entity == P1:
+            displaysurface.blit(P1.image, P1.rect)
+            entity.move()
+        else:
+            displaysurface.blit(entity.surf, entity.rect)
+            entity.move()
+    P1.update()
+
+    plat_gen() 
+    
     
     pygame.display.update()
     FramePerSec.tick(fps)
