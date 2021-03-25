@@ -1,6 +1,7 @@
 import pygame
 import random
 import sys
+import os 
 from pygame.locals import *
 
 
@@ -20,6 +21,7 @@ fps = 60
 red = (255,0,0)
 font = pygame.font.SysFont(None, 25)
 hyppy = pygame.mixer.Sound('hyppy.wav')
+introsound = pygame.mixer.Sound('PelikabaleWAV.wav')
 
 
 
@@ -33,7 +35,7 @@ pygame.display.set_caption("OMAPELI3.PY")
 class Background(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load('bg4.jpg')
+        self.image = pygame.image.load('tausta2.jpg')
         self.rect = self.image.get_rect()
         self.bgY = 0
         self.bgX = 0
@@ -153,6 +155,7 @@ def text_objects(text,color):
     return textSurface, textSurface.get_rect()
 
 def game_intro():
+    introsound.play(1000000)
     introimg = pygame.image.load('tausta.png')
     intro = True
     while intro:
@@ -163,7 +166,9 @@ def game_intro():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+                    introsound.stop()
                     intro = False
+                     
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     quit()
@@ -171,6 +176,9 @@ def game_intro():
 
         pygame.display.update()
         pygame.display.flip()
+
+
+
 
 
 Pt1 = platform()
@@ -204,6 +212,7 @@ game_intro()
 
 while True:
 
+
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
@@ -215,7 +224,7 @@ while True:
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_SPACE:
                 P1.cancel_jump()
-
+                    
     if P1.rect.top <= korkeus / 3:
         P1.pos.y += abs(P1.vel.y)
         for plat in platforms:
@@ -227,10 +236,8 @@ while True:
             entity.kill()
             displaysurface.fill((0,0,0))
             pygame.display.update()
-            pygame.quit()
-
-         
-
+            sys.exit()
+            
     background.render()
     f = pygame.font.SysFont("Verdana", 20)
     g = f.render(str(P1.score)+"op", True, (0,0 ,0))
@@ -249,7 +256,6 @@ while True:
     plat_gen()  
     pygame.display.update()
     FramePerSec.tick(fps)
-
 
 
 
